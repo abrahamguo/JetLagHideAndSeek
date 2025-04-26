@@ -24,6 +24,7 @@ import type {
     TentacleLocations,
     ZoneMatchingQuestions,
 } from "@/lib/schema";
+import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 
 export const findMatchingPlaces = async (question: MatchingQuestion) => {
     switch (question.type) {
@@ -249,7 +250,7 @@ export const determineMatchingBoundary = _.memoize(
 
 export const adjustPerMatching = async (
     question: MatchingQuestion,
-    mapData: any,
+    mapData: FeatureCollection<Polygon | MultiPolygon>,
     masked: boolean,
 ) => {
     if (mapData === null) return;
