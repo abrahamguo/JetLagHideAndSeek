@@ -333,7 +333,7 @@ export const adjustPerMeasuring = async (
         );
     } else {
         return turf.intersect(
-            turf.featureCollection([unionize(mapData), holedMask(buffer)!]),
+            turf.featureCollection([unionize(mapData), holedMask(buffer)]),
         );
     }
 };

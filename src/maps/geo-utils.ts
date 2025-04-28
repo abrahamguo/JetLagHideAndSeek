@@ -20,16 +20,17 @@ export const holedMask = (
         | FeatureCollectionPolygonMaybeMulti
         | Feature<PolygonMaybeMulti>,
 ) => {
-    const input =
+    const inputMaybePolygon =
         "features" in inputMaybeCollection
             ? unionize(inputMaybeCollection)
             : inputMaybeCollection;
 
     const holes = [];
 
-    if (input.geometry.type === "Polygon") {
-        input = turf.multiPolygon([input.geometry.coordinates]);
-    }
+    const input =
+        inputMaybePolygon.geometry.type === "Polygon"
+            ? turf.multiPolygon([inputMaybePolygon.geometry.coordinates])
+            : inputMaybePolygon;
 
     if (input.geometry.type === "MultiPolygon") {
         for (const feature of input.geometry.coordinates) {
@@ -45,7 +46,7 @@ export const holedMask = (
             // @ts-expect-error This made sense when I wrote it
             turf.multiPolygon(holes.map((x) => [x])),
         ]),
-    );
+    )!;
 };
 
 export const lngLatToText = (coordinates: [number, number]) => {

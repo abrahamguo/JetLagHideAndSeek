@@ -68,7 +68,7 @@ export const getOverpassData = async (
 export const determineGeoJSON = async (
     osmId: string,
     osmTypeLetter: "W" | "R" | "N",
-): Promise<any> => {
+) => {
     const osmTypeMap: { [key: string]: string } = {
         W: "way",
         R: "relation",
@@ -88,7 +88,7 @@ export const determineGeoJSON = async (
 
     return {
         ...geo,
-        features: geo.features.filter((feature: any) => {
+        features: geo.features.filter((feature) => {
             if (feature.geometry.type === "Point") {
                 return false;
             }
