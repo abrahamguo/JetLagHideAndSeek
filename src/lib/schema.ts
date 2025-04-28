@@ -241,9 +241,15 @@ const homeGameMeasuringQuestionsSchema = baseMeasuringQuestionSchema.extend({
     ]),
 });
 
+const customMeasuringQuestionSchema = baseMeasuringQuestionSchema.extend({
+    type: z.literal("custom-measure"),
+    geo: z.any(),
+});
+
 const measuringQuestionSchema = z.union([
     ordinaryMeasuringQuestionSchema,
     homeGameMeasuringQuestionsSchema,
+    customMeasuringQuestionSchema,
 ]);
 
 export const questionSchema = z.union([
@@ -288,6 +294,9 @@ export type HomeGameMatchingQuestions = z.infer<
 export type ZoneMatchingQuestions = z.infer<typeof zoneMatchingQuestionsSchema>;
 export type CustomMatchingQuestion = z.infer<
     typeof customMatchingQuestionSchema
+>;
+export type CustomMeasuringQuestion = z.infer<
+    typeof customMeasuringQuestionSchema
 >;
 export type MeasuringQuestion = z.infer<typeof measuringQuestionSchema>;
 export type HomeGameMeasuringQuestions = z.infer<

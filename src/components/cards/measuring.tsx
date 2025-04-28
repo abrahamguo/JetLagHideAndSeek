@@ -3,10 +3,12 @@ import { useStore } from "@nanostores/react";
 import { cn } from "../../lib/utils";
 import {
     displayHidingZones,
+    drawingQuestionKey,
     hiderMode,
     questionModified,
     questions,
     triggerLocalRefresh,
+    isLoading,
 } from "../../lib/context";
 import { iconColors, prettifyLocation } from "../../maps/api";
 import { MENU_ITEM_CLASSNAME, SidebarMenuItem } from "../ui/sidebar-l";
@@ -22,6 +24,7 @@ import {
 import { Checkbox } from "../ui/checkbox";
 import { QuestionCard } from "./base";
 import type { MeasuringQuestion, TentacleLocations } from "@/lib/schema";
+import { determineMeasuringBoundary } from "@/maps/measuring";
 
 export const MeasuringQuestionComponent = ({
     data,
@@ -40,6 +43,8 @@ export const MeasuringQuestionComponent = ({
     const $hiderMode = useStore(hiderMode);
     const $questions = useStore(questions);
     const $displayHidingZones = useStore(displayHidingZones);
+    const $drawingQuestionKey = useStore(drawingQuestionKey);
+    const $isLoading = useStore(isLoading);
     const label = `Measuring
     ${
         $questions
@@ -78,6 +83,29 @@ export const MeasuringQuestionComponent = ({
                     a hiding zone in the hiding zone sidebar.
                 </span>
             );
+            break;
+        case "custom-measure":
+            if (data.drag) {
+                questionSpecific = (
+                    <p className="px-2 mb-1 text-center text-orange-500">
+                        To modify the measuring question, enable it:
+                        <Checkbox
+                            className="mx-1 my-1"
+                            checked={$drawingQuestionKey === questionKey}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    drawingQuestionKey.set(questionKey);
+                                } else {
+                                    drawingQuestionKey.set(-1);
+                                }
+                            }}
+                            disabled={!data.drag || $isLoading}
+                        />
+                        and use the buttons at the bottom left of the map.
+                    </p>
+                );
+            }
+            break;
     }
 
     return (
@@ -91,10 +119,26 @@ export const MeasuringQuestionComponent = ({
             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                 <Select
                     value={data.type}
-                    onValueChange={(value) =>
-                        questionModified((data.type = value as any))
-                    }
-                    disabled={!data.drag}
+                    onValueChange={async (value) => {
+                        if (value === "custom-measure") {
+                            const boundary =
+                                await determineMeasuringBoundary(data);
+
+                            if (!(data as any).geo) {
+                                (data as any).geo = {
+                                    type: "FeatureCollection",
+                                    features: [],
+                                };
+                            }
+
+                            (data as any).geo.features = boundary
+                                ? boundary
+                                : [];
+                        }
+                        data.type = value as any;
+                        questionModified();
+                    }}
+                    disabled={!data.drag || $isLoading}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Measuring Type" />
@@ -134,6 +178,9 @@ export const MeasuringQuestionComponent = ({
                                 (Small+Medium Games)
                             </SelectItem>
                         ))}
+                        <SelectItem value="custom-measure">
+                            Custom Measuring Question
+                        </SelectItem>
                         <SelectGroup>
                             <SelectLabel>Hiding Zone Mode</SelectLabel>
                             <SelectItem
@@ -187,7 +234,7 @@ export const MeasuringQuestionComponent = ({
                     Hider Closer
                 </label>
                 <Checkbox
-                    disabled={!!$hiderMode || !data.drag}
+                    disabled={!!$hiderMode || !data.drag || $isLoading}
                     checked={data.hiderCloser}
                     onCheckedChange={(checked) =>
                         questionModified(
@@ -209,6 +256,7 @@ export const MeasuringQuestionComponent = ({
                 Color (lock{" "}
                 <Checkbox
                     checked={!data.drag}
+                    disabled={$isLoading}
                     onCheckedChange={(checked) =>
                         questionModified((data.drag = !checked as boolean))
                     }
@@ -227,7 +275,7 @@ export const MeasuringQuestionComponent = ({
                     }
                     questionModified();
                 }}
-                disabled={!data.drag}
+                disabled={!data.drag || $isLoading}
             />
         </QuestionCard>
     );
