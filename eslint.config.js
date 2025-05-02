@@ -1,6 +1,7 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
+import pluginImport from "eslint-plugin-import";
 import pluginImportAlias from "eslint-plugin-import-alias";
 import pluginReact from "eslint-plugin-react";
 import tsconfig from "./tsconfig.json" with { type: "json" };
@@ -13,13 +14,14 @@ export default [
     ...tseslint.configs.recommended,
     pluginReact.configs.flat.recommended,
     {
-        plugins: { "import-alias": pluginImportAlias },
+        plugins: { import: pluginImport, "import-alias": pluginImportAlias },
         settings: {
-            react: {
-                version: "19",
-            },
+            "import/extensions": [".ts", ".tsx"],
+            "import/resolver": { typescript: {} },
+            react: { version: "19" },
         },
         rules: {
+            "import/no-unused-modules": ["error", { unusedExports: true }],
             "import-alias/import-alias": [
                 "error",
                 {
